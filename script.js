@@ -72,13 +72,11 @@ const displayMovements = function (movements) {
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
-displayMovements(account1.movements);
 
 const calcDisplayBalance = function (movements) {
   const balance = movements.reduce((acc, mov) => acc + mov, 0);
   labelBalance.textContent = `${balance} EUR`;
 };
-calcDisplayBalance(account1.movements);
 
 const calcDisplaySummary = function (movements) {
   const incomes = movements
@@ -100,7 +98,6 @@ const calcDisplaySummary = function (movements) {
     .reduce((acc, int) => acc + int, 0);
   labelSumInterest.textContent = `${interest}€`;
 };
-calcDisplaySummary(account1.movements);
 
 const createUsernames = function (accs) {
   accs.forEach(function (acc) {
@@ -112,3 +109,32 @@ const createUsernames = function (accs) {
   });
 };
 createUsernames(accounts);
+
+//Event Handlers
+let currentAccount;
+
+btnLogin.addEventListener('click', function (e) {
+  //Prevent form from submitting
+  e.preventDefault();
+  currentAccount = accounts.find(
+    acc => acc.username === inputLoginUsername.value
+  );
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    // Display UI and message
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
+    containerApp.style.opacity = 100;
+    //Clear input fields
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+
+    // Display movements
+    displayMovements(currentAccount.movements);
+    //Display Balance
+    calcDisplayBalance(currentAccount.movements);
+    //Display Summary
+    calcDisplaySummary(currentAccount.movements);
+  }
+});
