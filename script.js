@@ -104,6 +104,7 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 //Functions
 
+// Showing the user how many days ago the transactions were made
 const formatMovementDate = function (date, locale) {
   const calcDaysPassed = (date1, date2) =>
     Math.round(Math.abs(date2 - date1) / (1000 * 60 * 60 * 24));
@@ -121,6 +122,7 @@ const formatMovementDate = function (date, locale) {
   return new Intl.DateTimeFormat(locale).format(date);
 };
 
+// Displaying current users' region format
 const formatCur = function (value, locale, currency) {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
@@ -128,6 +130,7 @@ const formatCur = function (value, locale, currency) {
   }).format(value);
 };
 
+// Displaying all the movements of the user
 const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
 
@@ -159,6 +162,7 @@ const calcDisplayBalance = function (acc) {
   labelBalance.textContent = formatCur(acc.balance, acc.locale, acc.currency);
 };
 
+// Displaying the incomes, outcomes and interests
 const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
@@ -184,6 +188,7 @@ const calcDisplaySummary = function (acc) {
   labelSumInterest.textContent = formatCur(interest, acc.locale, acc.currency);
 };
 
+// Creating usernames
 const createUsernames = function (accs) {
   accs.forEach(function (acc) {
     acc.username = acc.owner
@@ -195,6 +200,7 @@ const createUsernames = function (accs) {
 };
 createUsernames(accounts);
 
+// Updating the User Interface
 const updateUI = function (acc) {
   // Display movements
   displayMovements(acc);
@@ -204,25 +210,32 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
+// Log out timer
 const startLogOutTimer = function () {
-  // Set time to 5 minutes
-  let time = 100;
-  // Call the timer every second
-  setInterval(function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
     // In each call, print the remaining time to UI
-    labelTimer.textContent = time;
+    labelTimer.textContent = `${min}:${sec}`;
+    // When time is 0 seconds, stop timer and log out user
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = `Log in to get started`;
+      containerApp.style.opacity = 0;
+    }
     // Decrease one second
     time--;
-    // When time is 0 seconds, stop timer and log out user
-  }, 1000);
+  };
+  // Set time to 5 minutes
+  let time = 300;
+  // Call the timer every second
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
 };
-//Event Handlers
-let currentAccount;
 
-//
-currentAccount = account1;
-updateUI(currentAccount);
-containerApp.style.opacity = 100;
+// ------------------- Event Handlers -------------------
+let currentAccount, timer;
 
 btnLogin.addEventListener('click', function (e) {
   //Prevent form from submitting
@@ -252,25 +265,20 @@ btnLogin.addEventListener('click', function (e) {
       currentAccount.locale,
       options
     ).format(now);
-    // const now = new Date();
-    // const day = `${now.getDate()}`.padStart(2, 0);
-    // const month = `${now.getMonth() + 1}`.padStart(2, 0);
-    // const year = now.getFullYear();
-    // const hour = now.getHours();
-    // const min = `${now.getMinutes()}`.padStart(2, 0);
-    // labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
-
     //Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
-    startLogOutTimer();
+    // Timer
+    if (timer) clearInterval(timer);
+    timer = startLogOutTimer();
 
     //Update UI
     updateUI(currentAccount);
   }
 });
 
+// Delete account
 btnClose.addEventListener('click', function (e) {
   e.preventDefault();
 
@@ -291,6 +299,7 @@ btnClose.addEventListener('click', function (e) {
   inputCloseUsername.value = inputClosePin.value = '';
 });
 
+// Loan, ask for money
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
 
@@ -306,6 +315,10 @@ btnLoan.addEventListener('click', function (e) {
 
       //Update UI
       updateUI(currentAccount);
+
+      //Reset timer
+      clearInterval(timer);
+      timer = startLogOutTimer();
     }, 2500);
     inputLoanAmount.value = '';
   }
@@ -336,9 +349,14 @@ btnTransfer.addEventListener('click', function (e) {
 
     //Update UI
     updateUI(currentAccount);
+
+    //Reset timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
   }
 });
 
+// Sorting
 let sorted = false;
 btnSort.addEventListener('click', function (e) {
   e.preventDefault;
