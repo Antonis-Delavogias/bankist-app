@@ -204,6 +204,18 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
+const startLogOutTimer = function () {
+  // Set time to 5 minutes
+  let time = 100;
+  // Call the timer every second
+  setInterval(function () {
+    // In each call, print the remaining time to UI
+    labelTimer.textContent = time;
+    // Decrease one second
+    time--;
+    // When time is 0 seconds, stop timer and log out user
+  }, 1000);
+};
 //Event Handlers
 let currentAccount;
 
@@ -252,6 +264,8 @@ btnLogin.addEventListener('click', function (e) {
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
 
+    startLogOutTimer();
+
     //Update UI
     updateUI(currentAccount);
   }
@@ -283,16 +297,18 @@ btnLoan.addEventListener('click', function (e) {
   const amount = Math.floor(inputLoanAmount.value);
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount / 10)) {
-    // Add movement
-    currentAccount.movements.push(amount);
+    setTimeout(function () {
+      // Add movement
+      currentAccount.movements.push(amount);
 
-    // Add transfer date
-    currentAccount.movementsDates.push(new Date().toISOString());
+      // Add transfer date
+      currentAccount.movementsDates.push(new Date().toISOString());
 
-    //Update UI
-    updateUI(currentAccount);
+      //Update UI
+      updateUI(currentAccount);
+    }, 2500);
+    inputLoanAmount.value = '';
   }
-  inputLoanAmount.value = '';
 });
 
 //Transfer money
